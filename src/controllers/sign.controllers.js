@@ -1,6 +1,7 @@
 import connection from '../database/db.js';
 import Joi from "joi";
 import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from 'uuid';
 
 //SignUp
 //Schema
@@ -35,4 +36,40 @@ async function SignUp(req, res) {
     }
 }
 
-export { SignUp };
+//SignIn
+//Schema
+const signInSchema = Joi.object({
+    email: Joi.string().empty().email().max(200).required(),
+    password: Joi.string().empty().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
+});
+async function SignIn(req, res) {
+    try {
+        //Body's schema validation
+        await signInSchema.validateAsync(req.body);
+
+        //Verifies if email already exists
+        const searchEmail = (await connection.query(`SELECT * FROM users WHERE email = $1;`, [req.body.email])).rows;
+        if (searchEmail.length === 0) {
+            res.sendStatus(401);
+            return;
+        }
+
+        //Verifies if the passwords match
+        const compare = bcrypt.compareSync(req.body.password, searchEmail[0].password);
+        if (compare) {
+            const token = uuidv4();
+            await connection.query(`INSERT INTO sessions ("userId", token) VALUES($1, $2);`, [searchEmail[0].id, token]);
+            res.status(200).send({ token: token });
+            //res.status(200).send({ token });
+            return;
+        } else {
+            res.sendStatus(401);
+            return;
+        }
+    } catch (error) {
+        res.status(422).send(error.details.map((detail) => detail.message));
+        console.log(error);
+    }
+};
+
+export { SignUp, SignIn };
