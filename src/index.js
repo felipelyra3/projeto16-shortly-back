@@ -1,12 +1,16 @@
 import express from "express";
 import cors from 'cors';
 import connection from "./database/db.js";
-import Sign from "./routers/sign.routers.js"
+import Sign from "./routers/sign.routers.js";
+import Urls from "./routers/urls.routers.js";
 
 
 const server = express();
 server.use(cors());
 server.use(express.json());
+
+////////// Urls //////////
+server.use(Urls);
 
 ////////// SignIn & SignUp //////////
 server.use(Sign);
