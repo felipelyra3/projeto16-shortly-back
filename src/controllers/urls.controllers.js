@@ -39,4 +39,21 @@ async function UrlsShorten(req, res) {
     }
 };
 
-export { UrlsShorten };
+async function GetUrlsById(req, res) {
+    try {
+        //Searches the url in database
+        const searchUrl = (await connection.query(`SELECT id, "shortenUrl" AS  "shortUrl", "originalUrl" AS "url" FROM shortens WHERE id = $1`, [req.params.id])).rows;
+
+        //Verifies if the URL exists (by id)
+        if (searchUrl.length === 0) {
+            res.sendStatus(404);
+            return;
+        }
+
+        res.send(searchUrl);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export { UrlsShorten, GetUrlsById };
