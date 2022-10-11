@@ -99,7 +99,7 @@ async function DeleteUrlsById(req, res) {
             return;
         }
 
-        //Verifies if ID is a number
+        //Verifies if ID (req.params.id) is a number
         if (isNaN(req.params.id)) {
             res.sendStatus(404);
             return;
