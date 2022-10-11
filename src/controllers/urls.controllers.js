@@ -42,7 +42,7 @@ async function UrlsShorten(req, res) {
 async function GetUrlsById(req, res) {
     try {
         //Searches the url in database
-        const searchUrl = (await connection.query(`SELECT id, "shortenUrl" AS  "shortUrl", "originalUrl" AS "url" FROM shortens WHERE id = $1`, [req.params.id])).rows;
+        const searchUrl = (await connection.query(`SELECT id, "shortenUrl" AS  "shortUrl", "originalUrl" AS "url" FROM shortens WHERE id = $1;`, [req.params.id])).rows;
 
         //Verifies if the URL exists (by id)
         if (searchUrl.length === 0) {
@@ -56,4 +56,25 @@ async function GetUrlsById(req, res) {
     }
 };
 
-export { UrlsShorten, GetUrlsById };
+async function GetUrlsOpenShortenUrl(req, res) {
+    try {
+        //Searches the url in database
+        const searchUrl = (await connection.query(`SELECT * FROM shortens WHERE "shortenUrl" = $1;`, [req.params.shortUrl])).rows;
+
+        //Verifies if the URL exists (by shortenUrl)
+        if (searchUrl.length === 0) {
+            res.sendStatus(404);
+            return;
+        }
+
+        //Increments visits number
+        let increment = searchUrl[0].visits + 1;
+        await connection.query(`UPDATE shortens SET visits = $1 WHERE "shortenUrl" = $2;`, [increment, req.params.shortUrl]);
+
+        res.redirect(searchUrl[0].originalUrl);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export { UrlsShorten, GetUrlsById, GetUrlsOpenShortenUrl };
