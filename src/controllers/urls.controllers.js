@@ -41,6 +41,12 @@ async function UrlsShorten(req, res) {
 
 async function GetUrlsById(req, res) {
     try {
+        //Verifies if ID is a number
+        if (isNaN(req.params.id)) {
+            res.sendStatus(404);
+            return;
+        }
+
         //Searches the url in database
         const searchUrl = (await connection.query(`SELECT id, "shortenUrl" AS  "shortUrl", "originalUrl" AS "url" FROM shortens WHERE id = $1;`, [req.params.id])).rows;
 
@@ -77,4 +83,52 @@ async function GetUrlsOpenShortenUrl(req, res) {
     }
 };
 
-export { UrlsShorten, GetUrlsById, GetUrlsOpenShortenUrl };
+async function DeleteUrlsById(req, res) {
+    try {
+        //Validate if authorization on headers exists
+        if (!req.headers.authorization) {
+            res.sendStatus(401);
+            return;
+        }
+
+        //Validates if the sessions exists
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        const searchToken = (await connection.query(`SELECT * FROM sessions WHERE token = $1;`, [token])).rows;
+        if (searchToken.length === 0) {
+            res.sendStatus(401);
+            return;
+        }
+
+        //Verifies if ID is a number
+        if (isNaN(req.params.id)) {
+            res.sendStatus(404);
+            return;
+        }
+
+        //Searches the url in database
+        const searchUrl = (await connection.query(`SELECT * FROM shortens WHERE id = $1;`, [req.params.id])).rows;
+
+        //Verifies if the URL exists (by shortenUrl)
+        if (searchUrl.length === 0) {
+            res.sendStatus(404);
+            return;
+        }
+
+        //Searches the url in database by id and user
+        const searchUrlByUser = (await connection.query(`SELECT * FROM shortens WHERE id = $1 AND "userId" = $2;`, [req.params.id, searchToken[0].userId])).rows;
+
+        //Verifies if the URL exists (by shortenUrl)
+        if (searchUrlByUser.length === 0) {
+            res.sendStatus(401);
+            return;
+        }
+
+        await connection.query(`DELETE FROM shortens WHERE id = $1;`, [req.params.id]);
+
+        res.sendStatus(204);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export { UrlsShorten, GetUrlsById, GetUrlsOpenShortenUrl, DeleteUrlsById };
