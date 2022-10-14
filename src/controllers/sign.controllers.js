@@ -72,4 +72,17 @@ async function SignIn(req, res) {
     }
 };
 
-export { SignUp, SignIn };
+async function SignOut(req, res) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    await connection.query('DELETE FROM sessions WHERE token = $1;', [token]);
+    res.sendStatus(200);
+}
+
+async function SignOutAll(req, res) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const userId = (await connection.query('SELECT "userId" FROM sessions WHERE token = $1', [token])).rows;
+    await connection.query('DELETE FROM sessions WHERE "userId" = $1', [userId[0].userId]);
+    res.sendStatus(200);
+}
+
+export { SignUp, SignIn, SignOut, SignOutAll };

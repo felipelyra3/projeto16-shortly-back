@@ -1,10 +1,12 @@
 import express from "express";
 import cors from 'cors';
+import dotenv from "dotenv";
 import connection from "./database/db.js";
 import Sign from "./routers/sign.routers.js";
 import Urls from "./routers/urls.routers.js";
 import Users from "./routers/users.routers.js";
 import Ranking from "./routers/ranking.routers.js";
+dotenv.config();
 
 
 const server = express();
@@ -29,6 +31,6 @@ server.get('/', async (req, res) => {
 });
 
 ////////// Server listen //////////
-server.listen(4000, () => {
-    console.log("Server running on port " + 4000);
+server.listen(process.env.PORT, () => {
+    console.log("Server running on port " + process.env.PORT);
 });
