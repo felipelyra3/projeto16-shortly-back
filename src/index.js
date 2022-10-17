@@ -25,10 +25,10 @@ server.use(Users);
 ////////// Ranking //////////
 server.use(Ranking);
 
-server.get('/', async (req, res) => {
+/* server.get('/', async (req, res) => {
     const search = (await connection.query('SELECT * FROM users;')).rows;
     res.send(search);
-});
+}); */
 
 ////////// Server listen //////////
 server.listen(process.env.PORT, () => {
